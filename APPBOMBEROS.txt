@@ -1,0 +1,1019 @@
+const ComponentFunction = function() {
+  // @section:imports @depends:[]
+  var React = require('react');
+  var useState = React.useState;
+  var useEffect = React.useEffect;
+  var useContext = React.useContext;
+  var useMemo = React.useMemo;
+  var useCallback = React.useCallback;
+  var RN = require('react-native');
+  var View = RN.View;
+  var Text = RN.Text;
+  var StyleSheet = RN.StyleSheet;
+  var ScrollView = RN.ScrollView;
+  var TouchableOpacity = RN.TouchableOpacity;
+  var TextInput = RN.TextInput;
+  var FlatList = RN.FlatList;
+  var Alert = RN.Alert;
+  var Platform = RN.Platform;
+  var StatusBar = RN.StatusBar;
+  var Modal = RN.Modal;
+  var ActivityIndicator = RN.ActivityIndicator;
+  var Dimensions = RN.Dimensions;
+  var Image = RN.Image;
+  var KeyboardAvoidingView = RN.KeyboardAvoidingView;
+  var MaterialIcons = require('@expo/vector-icons').MaterialIcons;
+  var createBottomTabNavigator = require('@react-navigation/bottom-tabs').createBottomTabNavigator;
+  var createStackNavigator = require('@react-navigation/stack').createStackNavigator;
+  var useSafeAreaInsets = require('react-native-safe-area-context').useSafeAreaInsets;
+  var platformHooks = require('platform-hooks');
+  var useQuery = platformHooks.useQuery;
+  var useMutation = platformHooks.useMutation;
+  var useCamera = platformHooks.useCamera;
+  var useLocation = platformHooks.useLocation;
+  // @end:imports
+
+  // @section:theme @depends:[]
+  var primaryColor = '#DC2626';
+  var accentColor = '#B91C1C';
+  var backgroundColor = '#0F0F0F';
+  var cardColor = '#1C1C1E';
+  var cardAlt = '#252528';
+  var textPrimary = '#FFFFFF';
+  var textSecondary = '#9CA3AF';
+  var borderColor = '#2C2C2E';
+  var successColor = '#16A34A';
+  var warningColor = '#D97706';
+  var designStyle = 'professional';
+
+  var TAB_MENU_HEIGHT = Platform.OS === 'web' ? 56 : 49;
+  var SCROLL_EXTRA_PADDING = 16;
+  var WEB_TAB_MENU_PADDING = 90;
+  var FAB_SPACING = 16;
+  var HEADER_HEIGHT = 60;
+  // @end:theme
+
+  // @section:navigation-setup @depends:[]
+  var Tab = createBottomTabNavigator();
+  var Stack = createStackNavigator();
+  // @end:navigation-setup
+
+  // @section:ThemeContext @depends:[theme]
+  var ThemeContext = React.createContext({
+    theme: {
+      colors: {
+        primary: primaryColor,
+        accent: accentColor,
+        background: backgroundColor,
+        card: cardColor,
+        cardAlt: cardAlt,
+        textPrimary: textPrimary,
+        textSecondary: textSecondary,
+        border: borderColor,
+        success: successColor,
+        warning: warningColor
+      }
+    }
+  });
+
+  var ThemeProvider = function(props) {
+    var theme = useMemo(function() {
+      return {
+        colors: {
+          primary: primaryColor,
+          accent: accentColor,
+          background: backgroundColor,
+          card: cardColor,
+          cardAlt: cardAlt,
+          textPrimary: textPrimary,
+          textSecondary: textSecondary,
+          border: borderColor,
+          success: successColor,
+          warning: warningColor
+        }
+      };
+    }, []);
+    var value = useMemo(function() { return { theme: theme }; }, [theme]);
+    return React.createElement(ThemeContext.Provider, { testID: 'Provider-1', value: value }, props.children);
+  };
+
+  var useTheme = function() { return useContext(ThemeContext); };
+  // @end:ThemeContext
+
+  // @section:HomeScreen @depends:[ThemeContext,styles]
+  var HomeScreen = function(props) {
+    var navigation = props.navigation;
+    var tc = useTheme();
+    var theme = tc.theme;
+    var insets = useSafeAreaInsets();
+    var accidentsQuery = useQuery('accidents');
+    var accidents = accidentsQuery.data || [];
+    var today = new Date();
+    var todayStr = today.toLocaleDateString('es-AR');
+    var todayCount = accidents.filter(function(a) {
+      return a.fecha && a.fecha.indexOf(todayStr) !== -1;
+    }).length;
+
+    return React.createElement(View, { testID: 'View-1', style: { flex: 1, backgroundColor: theme.colors.background }, componentId: 'home-screen' },
+      React.createElement(View, { testID: 'View-2', style: {
+          backgroundColor: theme.colors.primary,
+          paddingTop: insets.top + 12,
+          paddingBottom: 20,
+          paddingHorizontal: 20
+        },
+        componentId: 'home-header'
+      },
+        React.createElement(View, { testID: 'View-3', style: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 } },
+          React.createElement(MaterialIcons, { testID: 'MaterialIcons-1', name: 'local-fire-department', size: 28, color: '#FFFFFF' }),
+          React.createElement(Text, { testID: 'Text-1', style: { color: '#FFFFFF', fontSize: 22, fontWeight: 'bold', marginLeft: 8 } }, 'Bomberos')
+        ),
+        React.createElement(Text, { testID: 'Text-2', style: { color: 'rgba(255,255,255,0.85)', fontSize: 14 } }, 'Registro de Accidentes Vehiculares')
+      ),
+      React.createElement(ScrollView, { testID: 'ScrollView-1', style: { flex: 1 },
+        contentContainerStyle: { padding: 20, paddingBottom: Platform.OS === 'web' ? WEB_TAB_MENU_PADDING : (TAB_MENU_HEIGHT + insets.bottom + SCROLL_EXTRA_PADDING) }
+      },
+        React.createElement(View, { testID: 'View-4', style: { flexDirection: 'row', marginBottom: 20 } },
+          React.createElement(View, { testID: 'View-5', style: { flex: 1, backgroundColor: theme.colors.card, borderRadius: 12, padding: 16, marginRight: 8, borderLeftWidth: 4, borderLeftColor: theme.colors.primary },
+            componentId: 'stat-today'
+          },
+            React.createElement(Text, { testID: 'Text-3', style: { color: theme.colors.textSecondary, fontSize: 12, marginBottom: 4 } }, 'HOY'),
+            React.createElement(Text, { testID: 'Text-4', style: { color: textPrimary, fontSize: 32, fontWeight: 'bold' } }, String(todayCount)),
+            React.createElement(Text, { testID: 'Text-5', style: { color: theme.colors.textSecondary, fontSize: 12 } }, 'accidentes')
+          ),
+          React.createElement(View, { testID: 'View-6', style: { flex: 1, backgroundColor: theme.colors.card, borderRadius: 12, padding: 16, marginLeft: 8, borderLeftWidth: 4, borderLeftColor: warningColor },
+            componentId: 'stat-total'
+          },
+            React.createElement(Text, { testID: 'Text-6', style: { color: theme.colors.textSecondary, fontSize: 12, marginBottom: 4 } }, 'TOTAL'),
+            React.createElement(Text, { testID: 'Text-7', style: { color: textPrimary, fontSize: 32, fontWeight: 'bold' } }, String(accidents.length)),
+            React.createElement(Text, { testID: 'Text-8', style: { color: theme.colors.textSecondary, fontSize: 12 } }, 'registrados')
+          )
+        ),
+        React.createElement(TouchableOpacity, { testID: 'TouchableOpacity-1', style: {
+            backgroundColor: theme.colors.primary,
+            borderRadius: 16,
+            paddingVertical: 22,
+            paddingHorizontal: 24,
+            marginBottom: 16,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            elevation: 6,
+            shadowColor: primaryColor,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.4,
+            shadowRadius: 8
+          },
+          onPress: function() { navigation.push('NewAccident'); },
+          componentId: 'btn-new-accident'
+        },
+          React.createElement(MaterialIcons, { testID: 'MaterialIcons-2', name: 'add-circle', size: 32, color: '#FFFFFF' }),
+          React.createElement(Text, { testID: 'Text-9', style: { color: '#FFFFFF', fontSize: 22, fontWeight: 'bold', marginLeft: 12 } }, 'NUEVO ACCIDENTE')
+        ),
+        React.createElement(TouchableOpacity, { testID: 'TouchableOpacity-2', style: {
+            backgroundColor: theme.colors.card,
+            borderRadius: 16,
+            paddingVertical: 22,
+            paddingHorizontal: 24,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 1,
+            borderColor: theme.colors.border
+          },
+          onPress: function() { navigation.navigate('HistoryTab'); },
+          componentId: 'btn-history'
+        },
+          React.createElement(MaterialIcons, { testID: 'MaterialIcons-3', name: 'history', size: 32, color: theme.colors.primary }),
+          React.createElement(Text, { testID: 'Text-10', style: { color: textPrimary, fontSize: 22, fontWeight: 'bold', marginLeft: 12 } }, 'VER HISTORIAL')
+        ),
+        React.createElement(View, { testID: 'View-7', style: { marginTop: 24, backgroundColor: theme.colors.card, borderRadius: 12, padding: 16 }, componentId: 'home-info' },
+          React.createElement(Text, { testID: 'Text-11', style: { color: theme.colors.textSecondary, fontSize: 13, textAlign: 'center', lineHeight: 20 } }, '📡 Modo offline · Datos guardados localmente\nListe los vehículos, propietarios e intervinientes')
+        )
+      )
+    );
+  };
+  // @end:HomeScreen
+
+  // @section:VehicleSection @depends:[styles]
+  var VehicleSection = function(props) {
+    var index = props.index;
+    var data = props.data;
+    var onChange = props.onChange;
+    var theme = props.theme;
+
+    var vehicleLabels = [
+      { key: 'vehiculo', label: 'Marca/Tipo', icon: 'directions-car', keyboard: 'default', capitalize: 'words' },
+      { key: 'modelo', label: 'Modelo', icon: 'info', keyboard: 'default', capitalize: 'words' },
+      { key: 'dominio', label: 'Dominio/Patente', icon: 'credit-card', keyboard: 'default', capitalize: 'characters' },
+      { key: 'seguro', label: 'Compañía de Seguro', icon: 'verified-user', keyboard: 'default', capitalize: 'words' }
+    ];
+
+    var ownerLabels = [
+      { key: 'propietario', label: 'Nombre Completo *', icon: 'badge', keyboard: 'default', capitalize: 'words', sanitize: false },
+      { key: 'edad', label: 'Edad', icon: 'cake', keyboard: 'numeric', capitalize: 'none', sanitize: true },
+      { key: 'dni', label: 'DNI / CUIT', icon: 'fingerprint', keyboard: 'numeric', capitalize: 'none', sanitize: true },
+      { key: 'telefono', label: 'Teléfono', icon: 'phone', keyboard: 'phone-pad', capitalize: 'none', sanitize: false },
+      { key: 'direccion', label: 'Dirección', icon: 'location-on', keyboard: 'default', capitalize: 'words', sanitize: false }
+    ];
+
+    return React.createElement(View, { testID: 'View-8', style: {
+        backgroundColor: theme.colors.cardAlt,
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 12,
+        borderLeftWidth: 4,
+        borderLeftColor: theme.colors.primary
+      },
+      componentId: 'vehicle-section-' + index
+    },
+      React.createElement(View, { testID: 'View-9', style: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 } },
+        React.createElement(View, { testID: 'View-10', style: {
+            backgroundColor: theme.colors.primary,
+            borderRadius: 20,
+            width: 32,
+            height: 32,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: 10
+          }
+        },
+          React.createElement(Text, { testID: 'Text-12', style: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 } }, String(index + 1))
+        ),
+        React.createElement(Text, { testID: 'Text-13', style: { color: textPrimary, fontSize: 16, fontWeight: '700' } }, 'Vehículo ' + (index + 1))
+      ),
+      React.createElement(Text, { testID: 'Text-14', style: { color: theme.colors.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 12, marginTop: 4 } }, 'DATOS DEL VEHÍCULO'),
+      vehicleLabels.map(function(field) {
+        return React.createElement(View, { testID: 'View-11', key: field.key, style: { marginBottom: 10 } },
+          React.createElement(Text, { testID: 'Text-15', style: { color: theme.colors.textSecondary, fontSize: 12, marginBottom: 4, fontWeight: '600', letterSpacing: 0.5 } }, field.label.toUpperCase()),
+          React.createElement(View, { testID: 'View-12', style: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.card, borderRadius: 10, borderWidth: 1, borderColor: theme.colors.border, paddingHorizontal: 12 } },
+            React.createElement(MaterialIcons, { testID: 'MaterialIcons-4', name: field.icon, size: 18, color: theme.colors.textSecondary }),
+            React.createElement(TextInput, { testID: 'TextInput-1', value: data[field.key] || '',
+              onChangeText: function(val) { onChange(index, field.key, val); },
+              placeholder: 'Ingrese ' + field.label.toLowerCase(),
+              placeholderTextColor: theme.colors.textSecondary,
+              keyboardType: field.keyboard,
+              autoCapitalize: field.capitalize,
+              autoCorrect: false,
+              style: { flex: 1, color: textPrimary, fontSize: 15, paddingVertical: 12, paddingLeft: 8 },
+              componentId: 'v' + (index + 1) + '-' + field.key
+            })
+          )
+        );
+      }),
+      React.createElement(Text, { testID: 'Text-16', style: { color: theme.colors.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 12, marginTop: 16 } }, 'DATOS DEL PROPIETARIO'),
+      ownerLabels.map(function(field) {
+        return React.createElement(View, { testID: 'View-13', key: field.key, style: { marginBottom: 10 } },
+          React.createElement(Text, { testID: 'Text-17', style: { color: theme.colors.textSecondary, fontSize: 12, marginBottom: 4, fontWeight: '600', letterSpacing: 0.5 } }, field.label.toUpperCase()),
+          React.createElement(View, { testID: 'View-14', style: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.card, borderRadius: 10, borderWidth: 1, borderColor: theme.colors.border, paddingHorizontal: 12 } },
+            React.createElement(MaterialIcons, { testID: 'MaterialIcons-5', name: field.icon, size: 18, color: theme.colors.textSecondary }),
+            React.createElement(TextInput, { testID: 'TextInput-2', value: data[field.key] || '',
+              onChangeText: field.sanitize ? function(txt) { onChange(index, field.key, txt.replace(/[^0-9]/g, '')); } : function(val) { onChange(index, field.key, val); },
+              placeholder: 'Ingrese ' + field.label.replace(' *', '').toLowerCase(),
+              placeholderTextColor: theme.colors.textSecondary,
+              keyboardType: field.keyboard,
+              autoCapitalize: field.capitalize,
+              autoCorrect: false,
+              style: { flex: 1, color: textPrimary, fontSize: 15, paddingVertical: 12, paddingLeft: 8 },
+              componentId: 'v' + (index + 1) + '-' + field.key
+            })
+          )
+        );
+      })
+    );
+  };
+  // @end:VehicleSection
+
+  // @section:NewAccidentScreen-state @depends:[ThemeContext]
+  var useNewAccidentState = function() {
+    var tc = useTheme();
+    var theme = tc.theme;
+    var vehicleCountState = useState(1);
+    var vehicleCount = vehicleCountState[0];
+    var setVehicleCount = vehicleCountState[1];
+    var vehiclesState = useState([
+      { vehiculo: '', modelo: '', dominio: '', seguro: '', propietario: '', edad: '', dni: '', telefono: '', direccion: '' },
+      { vehiculo: '', modelo: '', dominio: '', seguro: '', propietario: '', edad: '', dni: '', telefono: '', direccion: '' },
+      { vehiculo: '', modelo: '', dominio: '', seguro: '', propietario: '', edad: '', dni: '', telefono: '', direccion: '' },
+      { vehiculo: '', modelo: '', dominio: '', seguro: '', propietario: '', edad: '', dni: '', telefono: '', direccion: '' },
+      { vehiculo: '', modelo: '', dominio: '', seguro: '', propietario: '', edad: '', dni: '', telefono: '', direccion: '' },
+      { vehiculo: '', modelo: '', dominio: '', seguro: '', propietario: '', edad: '', dni: '', telefono: '', direccion: '' },
+      { vehiculo: '', modelo: '', dominio: '', seguro: '', propietario: '', edad: '', dni: '', telefono: '', direccion: '' },
+      { vehiculo: '', modelo: '', dominio: '', seguro: '', propietario: '', edad: '', dni: '', telefono: '', direccion: '' },
+      { vehiculo: '', modelo: '', dominio: '', seguro: '', propietario: '', edad: '', dni: '', telefono: '', direccion: '' },
+      { vehiculo: '', modelo: '', dominio: '', seguro: '', propietario: '', edad: '', dni: '', telefono: '', direccion: '' }
+    ]);
+    var vehicles = vehiclesState[0];
+    var setVehicles = vehiclesState[1];
+
+    var policiaState = useState('');
+    var policia = policiaState[0];
+    var setPolicia = policiaState[1];
+    var movilState = useState('');
+    var movil = movilState[0];
+    var setMovil = movilState[1];
+    var ambulanciaState = useState('');
+    var ambulancia = ambulanciaState[0];
+    var setAmbulancia = ambulanciaState[1];
+    var guardiaState = useState('');
+    var guardia = guardiaState[0];
+    var setGuardia = guardiaState[1];
+    var observacionesState = useState('');
+    var observaciones = observacionesState[0];
+    var setObservaciones = observacionesState[1];
+    var latState = useState(null);
+    var latitude = latState[0];
+    var setLatitude = latState[1];
+    var lngState = useState(null);
+    var longitude = lngState[0];
+    var setLongitude = lngState[1];
+    var gpsLoadingState = useState(false);
+    var gpsLoading = gpsLoadingState[0];
+    var setGpsLoading = gpsLoadingState[1];
+    var savingState = useState(false);
+    var saving = savingState[0];
+    var setSaving = savingState[1];
+
+    return {
+      theme: theme,
+      vehicleCount: vehicleCount, setVehicleCount: setVehicleCount,
+      vehicles: vehicles, setVehicles: setVehicles,
+
+      policia: policia, setPolicia: setPolicia,
+      movil: movil, setMovil: setMovil,
+      ambulancia: ambulancia, setAmbulancia: setAmbulancia,
+      guardia: guardia, setGuardia: setGuardia,
+      observaciones: observaciones, setObservaciones: setObservaciones,
+      latitude: latitude, setLatitude: setLatitude,
+      longitude: longitude, setLongitude: setLongitude,
+      gpsLoading: gpsLoading, setGpsLoading: setGpsLoading,
+      saving: saving, setSaving: setSaving
+    };
+  };
+  // @end:NewAccidentScreen-state
+
+  // @section:NewAccidentScreen @depends:[NewAccidentScreen-state,VehicleSection,styles]
+  var NewAccidentScreen = function(props) {
+    var navigation = props.navigation;
+    var insets = useSafeAreaInsets();
+    var s = useNewAccidentState();
+    var theme = s.theme;
+
+    var cameraHook = useCamera();
+    var takePhoto = cameraHook.takePhoto;
+    var photo = cameraHook.photo;
+
+    var locationHook = useLocation();
+    var getCurrentLocation = locationHook.getCurrentLocation;
+    var requestPermission = locationHook.requestPermission;
+
+    var mutationHook = useMutation('accidents', 'insert');
+    var insertAccident = mutationHook.mutate;
+
+    var handleVehicleChange = useCallback(function(idx, field, val) {
+      s.setVehicles(function(prev) {
+        var updated = prev.map(function(v, i) {
+          if (i !== idx) return v;
+          var next = Object.assign({}, v);
+          next[field] = val;
+          return next;
+        });
+        return updated;
+      });
+    }, [s.setVehicles]);
+
+    var handleTakePhoto = function() {
+      takePhoto().then(function(result) {
+        if (result.error) {
+          Platform.OS === 'web' ? window.alert('Error al tomar foto: ' + result.error) : Alert.alert('Error', result.error);
+        }
+      });
+    };
+
+    var handleGetGPS = function() {
+      s.setGpsLoading(true);
+      requestPermission().then(function() {
+        getCurrentLocation().then(function(result) {
+          s.setGpsLoading(false);
+          if (result.error) {
+            Platform.OS === 'web' ? window.alert('Error GPS: ' + result.error) : Alert.alert('Error GPS', result.error);
+            return;
+          }
+          s.setLatitude(result.latitude);
+          s.setLongitude(result.longitude);
+        });
+      });
+    };
+
+    var handleSave = function() {
+      var vehiculosData = [];
+      for (var i = 0; i < s.vehicleCount; i++) {
+        if (!s.vehicles[i].propietario.trim()) {
+          Platform.OS === 'web' ? window.alert('El nombre del propietario del vehículo ' + (i + 1) + ' es obligatorio') : Alert.alert('Campo requerido', 'El nombre del propietario del vehículo ' + (i + 1) + ' es obligatorio');
+          return;
+        }
+        vehiculosData.push(Object.assign({}, s.vehicles[i]));
+      }
+      var now = new Date();
+      var fechaStr = now.toLocaleDateString('es-AR') + ' ' + now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+      s.setSaving(true);
+      insertAccident({
+        vehiculos_count: s.vehicleCount,
+        vehiculos_json: JSON.stringify(vehiculosData),
+        policia: s.policia.trim(),
+        movil: s.movil.trim(),
+        ambulancia: s.ambulancia.trim(),
+        guardia: s.guardia.trim(),
+        observaciones: s.observaciones.trim(),
+        fecha: fechaStr,
+        latitude: s.latitude ? String(s.latitude) : '',
+        longitude: s.longitude ? String(s.longitude) : '',
+        photo_uri: photo ? photo.uri : ''
+      }).then(function() {
+        s.setSaving(false);
+        Platform.OS === 'web' ? window.alert('Accidente guardado correctamente') : Alert.alert('✅ Guardado', 'Accidente registrado correctamente');
+        navigation.goBack();
+      }).catch(function(err) {
+        s.setSaving(false);
+        Platform.OS === 'web' ? window.alert('Error al guardar: ' + (err.message || '')) : Alert.alert('Error', err.message || 'Error al guardar');
+      });
+    };
+
+    var scrollH = Dimensions.get('window').height - HEADER_HEIGHT - insets.top;
+
+    return React.createElement(View, { testID: 'View-15', style: { flex: 1, backgroundColor: theme.colors.background }, componentId: 'new-accident-screen' },
+      React.createElement(View, { testID: 'View-16', style: {
+          height: HEADER_HEIGHT + insets.top,
+          paddingTop: insets.top,
+          backgroundColor: theme.colors.primary,
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: 16
+        },
+        componentId: 'new-accident-header'
+      },
+        React.createElement(TouchableOpacity, { testID: 'TouchableOpacity-3', onPress: function() { navigation.goBack(); }, style: { padding: 8, marginRight: 8 }, componentId: 'btn-back' },
+          React.createElement(MaterialIcons, { testID: 'MaterialIcons-6', name: 'arrow-back', size: 26, color: '#FFFFFF' })
+        ),
+        React.createElement(MaterialIcons, { testID: 'MaterialIcons-7', name: 'add-road', size: 24, color: '#FFFFFF' }),
+        React.createElement(Text, { testID: 'Text-18', style: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold', marginLeft: 8, flex: 1 } }, 'Nuevo Accidente')
+      ),
+      React.createElement(ScrollView, { testID: 'ScrollView-2', style: Platform.OS === 'web' ? { height: scrollH, overflow: 'auto' } : { flex: 1 },
+        contentContainerStyle: { padding: 16, paddingBottom: insets.bottom + SCROLL_EXTRA_PADDING + 16 },
+        keyboardShouldPersistTaps: 'handled'
+      },
+        React.createElement(View, { testID: 'View-17', style: { backgroundColor: theme.colors.card, borderRadius: 12, padding: 16, marginBottom: 16 }, componentId: 'vehicle-count-section' },
+          React.createElement(View, { testID: 'View-18', style: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 } },
+            React.createElement(MaterialIcons, { testID: 'MaterialIcons-8', name: 'directions-car', size: 20, color: theme.colors.primary }),
+            React.createElement(Text, { testID: 'Text-19', style: { color: textPrimary, fontSize: 16, fontWeight: '700', marginLeft: 8 } }, 'CANTIDAD DE VEHÍCULOS')
+          ),
+          React.createElement(View, { testID: 'View-19', style: { flexDirection: 'row' } },
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(function(n) {
+              var active = s.vehicleCount === n;
+              return React.createElement(TouchableOpacity, { testID: 'TouchableOpacity-4', key: String(n),
+                onPress: function() { s.setVehicleCount(n); },
+                style: {
+                  flex: 1,
+                  marginHorizontal: 3,
+                  paddingVertical: 14,
+                  borderRadius: 10,
+                  alignItems: 'center',
+                  backgroundColor: active ? theme.colors.primary : theme.colors.cardAlt,
+                  borderWidth: active ? 0 : 1,
+                  borderColor: theme.colors.border
+                },
+                componentId: 'vehicle-count-' + n
+              },
+                React.createElement(Text, { testID: 'Text-20', style: { color: active ? '#FFFFFF' : theme.colors.textSecondary, fontSize: 22, fontWeight: 'bold' } }, String(n))
+              );
+            })
+          )
+        ),
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(function(idx) {
+          if (idx >= s.vehicleCount) return null;
+          return React.createElement(VehicleSection, { testID: 'VehicleSection-1', key: 'v' + idx,
+            index: idx,
+            data: s.vehicles[idx],
+            onChange: handleVehicleChange,
+            theme: theme
+          });
+        }),
+
+        React.createElement(View, { testID: 'View-20', style: { backgroundColor: theme.colors.card, borderRadius: 12, padding: 16, marginBottom: 16 }, componentId: 'responders-section' },
+          React.createElement(View, { testID: 'View-21', style: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 } },
+            React.createElement(MaterialIcons, { testID: 'MaterialIcons-9', name: 'local-fire-department', size: 20, color: primaryColor }),
+            React.createElement(Text, { testID: 'Text-21', style: { color: textPrimary, fontSize: 16, fontWeight: '700', marginLeft: 8 } }, 'INTERVINIENTES')
+          ),
+          [
+            { val: s.policia, setter: s.setPolicia, label: 'Policía (unidad/nombre)', icon: 'local-police', id: 'input-policia' },
+            { val: s.movil, setter: s.setMovil, label: 'Móvil / Patente', icon: 'local-taxi', id: 'input-movil' },
+            { val: s.ambulancia, setter: s.setAmbulancia, label: 'Ambulancia', icon: 'emergency', id: 'input-ambulancia' },
+            { val: s.guardia, setter: s.setGuardia, label: 'Guardia / Tránsito', icon: 'security', id: 'input-guardia' }
+          ].map(function(field) {
+            return React.createElement(View, { testID: 'View-22', key: field.id, style: { marginBottom: 10 } },
+              React.createElement(Text, { testID: 'Text-22', style: { color: theme.colors.textSecondary, fontSize: 12, marginBottom: 4, fontWeight: '600' } }, field.label.toUpperCase()),
+              React.createElement(View, { testID: 'View-23', style: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.cardAlt, borderRadius: 10, borderWidth: 1, borderColor: theme.colors.border, paddingHorizontal: 12 } },
+                React.createElement(MaterialIcons, { testID: 'MaterialIcons-10', name: field.icon, size: 18, color: theme.colors.textSecondary }),
+                React.createElement(TextInput, { testID: 'TextInput-3', value: field.val,
+                  onChangeText: field.setter,
+                  placeholder: field.label,
+                  placeholderTextColor: theme.colors.textSecondary,
+                  autoCapitalize: 'words',
+                  autoCorrect: false,
+                  style: { flex: 1, color: textPrimary, fontSize: 15, paddingVertical: 12, paddingLeft: 8 },
+                  componentId: field.id
+                })
+              )
+            );
+          })
+        ),
+        React.createElement(View, { testID: 'View-24', style: { backgroundColor: theme.colors.card, borderRadius: 12, padding: 16, marginBottom: 16 }, componentId: 'extras-section' },
+          React.createElement(View, { testID: 'View-25', style: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 } },
+            React.createElement(MaterialIcons, { testID: 'MaterialIcons-11', name: 'more-horiz', size: 20, color: theme.colors.textSecondary }),
+            React.createElement(Text, { testID: 'Text-23', style: { color: textPrimary, fontSize: 16, fontWeight: '700', marginLeft: 8 } }, 'EXTRAS')
+          ),
+          React.createElement(Text, { testID: 'Text-24', style: { color: theme.colors.textSecondary, fontSize: 12, marginBottom: 4, fontWeight: '600' } }, 'OBSERVACIONES'),
+          React.createElement(TextInput, { testID: 'TextInput-4', value: s.observaciones,
+            onChangeText: s.setObservaciones,
+            placeholder: 'Descripción del accidente, condiciones, novedades...',
+            placeholderTextColor: theme.colors.textSecondary,
+            multiline: true,
+            numberOfLines: 4,
+            textAlignVertical: 'top',
+            style: {
+              backgroundColor: theme.colors.cardAlt,
+              borderRadius: 10,
+              borderWidth: 1,
+              borderColor: theme.colors.border,
+              color: textPrimary,
+              fontSize: 15,
+              padding: 12,
+              minHeight: 100,
+              marginBottom: 14
+            },
+            componentId: 'input-observaciones'
+          }),
+          React.createElement(View, { testID: 'View-26', style: { flexDirection: 'row' } },
+            React.createElement(TouchableOpacity, { testID: 'TouchableOpacity-5', onPress: handleTakePhoto,
+              style: {
+                flex: 1,
+                marginRight: 6,
+                backgroundColor: photo ? successColor : theme.colors.cardAlt,
+                borderRadius: 10,
+                paddingVertical: 14,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                borderWidth: 1,
+                borderColor: photo ? successColor : theme.colors.border
+              },
+              componentId: 'btn-foto'
+            },
+              React.createElement(MaterialIcons, { testID: 'MaterialIcons-12', name: photo ? 'check-circle' : 'camera-alt', size: 20, color: photo ? '#FFFFFF' : theme.colors.textSecondary }),
+              React.createElement(Text, { testID: 'Text-25', style: { color: photo ? '#FFFFFF' : theme.colors.textSecondary, marginLeft: 6, fontWeight: '600', fontSize: 14 } }, photo ? 'Foto ✓' : 'Foto')
+            ),
+            React.createElement(TouchableOpacity, { testID: 'TouchableOpacity-6', onPress: handleGetGPS,
+              style: {
+                flex: 1,
+                marginLeft: 6,
+                backgroundColor: s.latitude ? successColor : theme.colors.cardAlt,
+                borderRadius: 10,
+                paddingVertical: 14,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                borderWidth: 1,
+                borderColor: s.latitude ? successColor : theme.colors.border
+              },
+              componentId: 'btn-gps'
+            },
+              s.gpsLoading
+                ? React.createElement(ActivityIndicator, { testID: 'ActivityIndicator-1', size: 'small', color: textPrimary })
+                : React.createElement(MaterialIcons, { testID: 'MaterialIcons-13', name: s.latitude ? 'gps-fixed' : 'gps-not-fixed', size: 20, color: s.latitude ? '#FFFFFF' : theme.colors.textSecondary }),
+              React.createElement(Text, { testID: 'Text-26', style: { color: s.latitude ? '#FFFFFF' : theme.colors.textSecondary, marginLeft: 6, fontWeight: '600', fontSize: 14 } }, s.latitude ? 'GPS ✓' : 'GPS')
+            )
+          ),
+          photo ? React.createElement(Image, { testID: 'Image-1', source: { uri: photo.uri },
+            style: {
+              width: '100%',
+              height: 180,
+              borderRadius: 10,
+              marginTop: 12,
+              backgroundColor: '#1a1a1a'
+            },
+            resizeMode: 'cover',
+            componentId: 'photo-preview'
+          }) : null,
+          s.latitude ? React.createElement(View, { testID: 'View-27', style: { marginTop: 10, backgroundColor: theme.colors.cardAlt, borderRadius: 8, padding: 10, flexDirection: 'row', alignItems: 'center' },
+            componentId: 'gps-display'
+          },
+            React.createElement(MaterialIcons, { testID: 'MaterialIcons-14', name: 'location-pin', size: 16, color: successColor }),
+            React.createElement(Text, { testID: 'Text-27', style: { color: successColor, fontSize: 12, marginLeft: 6, fontWeight: '600' } }, 'Lat: ' + (s.latitude ? s.latitude.toFixed(5) : '') + '  Lng: ' + (s.longitude ? s.longitude.toFixed(5) : ''))
+          ) : null
+        ),
+        React.createElement(TouchableOpacity, { testID: 'TouchableOpacity-7', onPress: handleSave,
+          disabled: s.saving,
+          style: {
+            backgroundColor: s.saving ? '#555' : theme.colors.primary,
+            borderRadius: 14,
+            paddingVertical: 20,
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'row',
+            marginBottom: 8,
+            elevation: 4,
+            shadowColor: primaryColor,
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.35,
+            shadowRadius: 6
+          },
+          componentId: 'btn-save'
+        },
+          s.saving
+            ? React.createElement(ActivityIndicator, { testID: 'ActivityIndicator-2', size: 'small', color: '#FFFFFF' })
+            : React.createElement(MaterialIcons, { testID: 'MaterialIcons-15', name: 'save', size: 24, color: '#FFFFFF' }),
+          React.createElement(Text, { testID: 'Text-28', style: { color: '#FFFFFF', fontSize: 20, fontWeight: 'bold', marginLeft: 10 } }, s.saving ? 'Guardando...' : 'GUARDAR ACCIDENTE')
+        )
+      )
+    );
+  };
+  // @end:NewAccidentScreen
+
+  // @section:HistoryScreen @depends:[ThemeContext,styles]
+  var HistoryScreen = function(props) {
+    var navigation = props.navigation;
+    var tc = useTheme();
+    var theme = tc.theme;
+    var insets = useSafeAreaInsets();
+    var accidentsQuery = useQuery('accidents', {}, { column: 'id', ascending: false });
+    var accidents = accidentsQuery.data || [];
+    var loading = accidentsQuery.loading;
+    var searchState = useState('');
+    var search = searchState[0];
+    var setSearch = searchState[1];
+
+    var filtered = useMemo(function() {
+      if (!search.trim()) return accidents;
+      var q = search.toLowerCase();
+      return accidents.filter(function(a) {
+        return (a.propietario && a.propietario.toLowerCase().indexOf(q) !== -1) ||
+               (a.fecha && a.fecha.toLowerCase().indexOf(q) !== -1) ||
+               (a.dni && a.dni.indexOf(q) !== -1);
+      });
+    }, [accidents, search]);
+
+    var renderItem = function(info) {
+      var item = info.item;
+      var vehicleCount = item.vehiculos_count || 1;
+      return React.createElement(TouchableOpacity, { testID: 'TouchableOpacity-8', onPress: function() { navigation.push('AccidentDetail', { accident: item }); },
+        style: {
+          backgroundColor: theme.colors.card,
+          borderRadius: 12,
+          padding: 16,
+          marginBottom: 10,
+          marginHorizontal: 16,
+          flexDirection: 'row',
+          alignItems: 'center',
+          borderLeftWidth: 4,
+          borderLeftColor: theme.colors.primary
+        },
+        componentId: 'history-item-' + item.id
+      },
+        React.createElement(View, { testID: 'View-28', style: { flex: 1 } },
+          React.createElement(Text, { testID: 'Text-29', style: { color: textPrimary, fontSize: 17, fontWeight: '700', marginBottom: 4 } }, item.propietario || 'Sin nombre'),
+          React.createElement(View, { testID: 'View-29', style: { flexDirection: 'row', alignItems: 'center', marginBottom: 3 } },
+            React.createElement(MaterialIcons, { testID: 'MaterialIcons-16', name: 'access-time', size: 13, color: theme.colors.textSecondary }),
+            React.createElement(Text, { testID: 'Text-30', style: { color: theme.colors.textSecondary, fontSize: 13, marginLeft: 4 } }, item.fecha || '')
+          ),
+          React.createElement(View, { testID: 'View-30', style: { flexDirection: 'row', alignItems: 'center' } },
+            React.createElement(MaterialIcons, { testID: 'MaterialIcons-17', name: 'directions-car', size: 13, color: theme.colors.primary }),
+            React.createElement(Text, { testID: 'Text-31', style: { color: theme.colors.primary, fontSize: 13, marginLeft: 4, fontWeight: '600' } }, String(vehicleCount) + ' ' + (vehicleCount === 1 ? 'vehículo' : 'vehículos'))
+          )
+        ),
+        React.createElement(MaterialIcons, { testID: 'MaterialIcons-18', name: 'chevron-right', size: 24, color: theme.colors.textSecondary })
+      );
+    };
+
+    return React.createElement(View, { testID: 'View-31', style: { flex: 1, backgroundColor: theme.colors.background }, componentId: 'history-screen' },
+      React.createElement(View, { testID: 'View-32', style: {
+          backgroundColor: theme.colors.primary,
+          paddingTop: insets.top + 12,
+          paddingBottom: 16,
+          paddingHorizontal: 16
+        },
+        componentId: 'history-header'
+      },
+        React.createElement(View, { testID: 'View-33', style: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 } },
+          React.createElement(MaterialIcons, { testID: 'MaterialIcons-19', name: 'history', size: 24, color: '#FFFFFF' }),
+          React.createElement(Text, { testID: 'Text-32', style: { color: '#FFFFFF', fontSize: 20, fontWeight: 'bold', marginLeft: 8 } }, 'Historial de Accidentes')
+        ),
+        React.createElement(View, { testID: 'View-34', style: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: 10, paddingHorizontal: 12 } },
+          React.createElement(MaterialIcons, { testID: 'MaterialIcons-20', name: 'search', size: 20, color: 'rgba(255,255,255,0.7)' }),
+          React.createElement(TextInput, { testID: 'TextInput-5', value: search,
+            onChangeText: setSearch,
+            placeholder: 'Buscar por nombre, DNI o fecha...',
+            placeholderTextColor: 'rgba(255,255,255,0.5)',
+            style: { flex: 1, color: '#FFFFFF', fontSize: 15, paddingVertical: 10, paddingLeft: 8 },
+            autoCorrect: false,
+            componentId: 'search-input'
+          })
+        )
+      ),
+      loading
+        ? React.createElement(View, { testID: 'View-35', style: { flex: 1, alignItems: 'center', justifyContent: 'center' }, componentId: 'loading-history' },
+            React.createElement(ActivityIndicator, { testID: 'ActivityIndicator-3', size: 'large', color: theme.colors.primary }),
+            React.createElement(Text, { testID: 'Text-33', style: { color: theme.colors.textSecondary, marginTop: 12 } }, 'Cargando historial...')
+          )
+        : filtered.length === 0
+          ? React.createElement(View, { testID: 'View-36', style: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 }, componentId: 'empty-history' },
+              React.createElement(MaterialIcons, { testID: 'MaterialIcons-21', name: 'assignment', size: 64, color: theme.colors.border }),
+              React.createElement(Text, { testID: 'Text-34', style: { color: theme.colors.textSecondary, fontSize: 18, fontWeight: '600', marginTop: 16, textAlign: 'center' } }, search ? 'Sin resultados' : 'Sin accidentes registrados'),
+              React.createElement(Text, { testID: 'Text-35', style: { color: theme.colors.textSecondary, fontSize: 14, marginTop: 8, textAlign: 'center' } }, search ? 'Intente con otros términos de búsqueda' : 'Los accidentes aparecerán aquí una vez registrados')
+            )
+          : React.createElement(FlatList, { testID: 'FlatList-1', data: filtered,
+              keyExtractor: function(item) { return String(item.id); },
+              renderItem: renderItem,
+              contentContainerStyle: {
+                paddingTop: 16,
+                paddingBottom: Platform.OS === 'web' ? WEB_TAB_MENU_PADDING : (TAB_MENU_HEIGHT + insets.bottom + SCROLL_EXTRA_PADDING)
+              },
+              componentId: 'history-list'
+            })
+    );
+  };
+  // @end:HistoryScreen
+
+  // @section:AccidentDetailScreen @depends:[ThemeContext,styles]
+  var AccidentDetailScreen = function(props) {
+    var navigation = props.navigation;
+    var route = props.route;
+    var tc = useTheme();
+    var theme = tc.theme;
+    var insets = useSafeAreaInsets();
+
+    var accident = route && route.params ? route.params.accident : null;
+    var fallback = {
+      propietario: 'Sin nombre',
+      edad: '-',
+      dni: '-',
+      telefono: '-',
+      direccion: '-',
+      fecha: '-',
+      vehiculos_count: 1,
+      vehiculos_json: '[]',
+      policia: '-',
+      movil: '-',
+      ambulancia: '-',
+      guardia: '-',
+      observaciones: '-',
+      latitude: '',
+      longitude: '',
+      photo_uri: ''
+    };
+    var data = accident || fallback;
+
+    var vehicles = [];
+    try {
+      vehicles = JSON.parse(data.vehiculos_json || '[]');
+    } catch (e) {
+      vehicles = [];
+    }
+
+    var scrollH = Dimensions.get('window').height - HEADER_HEIGHT - insets.top;
+
+    var renderDetailRow = function(icon, label, value) {
+      if (!value || value === '-' || value === '') return null;
+      return React.createElement(View, { testID: 'View-37', style: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10 } },
+        React.createElement(View, { testID: 'View-38', style: { width: 32, alignItems: 'center', marginTop: 1 } },
+          React.createElement(MaterialIcons, { testID: 'MaterialIcons-22', name: icon, size: 18, color: theme.colors.primary })
+        ),
+        React.createElement(View, { testID: 'View-39', style: { flex: 1 } },
+          React.createElement(Text, { testID: 'Text-36', style: { color: theme.colors.textSecondary, fontSize: 11, fontWeight: '600', marginBottom: 2 } }, label.toUpperCase()),
+          React.createElement(Text, { testID: 'Text-37', style: { color: textPrimary, fontSize: 15 } }, value)
+        )
+      );
+    };
+
+    return React.createElement(View, { testID: 'View-40', style: { flex: 1, backgroundColor: theme.colors.background }, componentId: 'detail-screen' },
+      React.createElement(View, { testID: 'View-41', style: {
+          height: HEADER_HEIGHT + insets.top,
+          paddingTop: insets.top,
+          backgroundColor: theme.colors.primary,
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: 16
+        },
+        componentId: 'detail-header'
+      },
+        React.createElement(TouchableOpacity, { testID: 'TouchableOpacity-9', onPress: function() { navigation.goBack(); }, style: { padding: 8, marginRight: 8 }, componentId: 'detail-back-btn' },
+          React.createElement(MaterialIcons, { testID: 'MaterialIcons-23', name: 'arrow-back', size: 26, color: '#FFFFFF' })
+        ),
+        React.createElement(MaterialIcons, { testID: 'MaterialIcons-24', name: 'assignment', size: 22, color: '#FFFFFF' }),
+        React.createElement(View, { testID: 'View-42', style: { flex: 1, marginLeft: 8 } },
+          React.createElement(Text, { testID: 'Text-38', style: { color: '#FFFFFF', fontSize: 17, fontWeight: 'bold' } }, data.propietario),
+          React.createElement(Text, { testID: 'Text-39', style: { color: 'rgba(255,255,255,0.75)', fontSize: 12 } }, data.fecha)
+        )
+      ),
+      React.createElement(ScrollView, { testID: 'ScrollView-3', style: Platform.OS === 'web' ? { height: scrollH, overflow: 'auto' } : { flex: 1 },
+        contentContainerStyle: { padding: 16, paddingBottom: insets.bottom + SCROLL_EXTRA_PADDING + 16 }
+      },
+        data.photo_uri ? React.createElement(Image, { testID: 'Image-2', source: { uri: data.photo_uri },
+          style: { width: '100%', height: 200, borderRadius: 12, marginBottom: 16, backgroundColor: '#1a1a1a' },
+          resizeMode: 'cover',
+          componentId: 'detail-photo'
+        }) : null,
+        React.createElement(View, { testID: 'View-43', style: { backgroundColor: theme.colors.card, borderRadius: 12, padding: 16, marginBottom: 14 }, componentId: 'detail-owner' },
+          React.createElement(View, { testID: 'View-44', style: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: theme.colors.border } },
+            React.createElement(View, { testID: 'View-45', style: { backgroundColor: warningColor, borderRadius: 8, padding: 6, marginRight: 10 } },
+              React.createElement(MaterialIcons, { testID: 'MaterialIcons-25', name: 'person', size: 18, color: '#FFFFFF' })
+            ),
+            React.createElement(Text, { testID: 'Text-40', style: { color: textPrimary, fontSize: 16, fontWeight: '700' } }, 'DATOS DEL PROPIETARIO')
+          ),
+          renderDetailRow('badge', 'Nombre', data.propietario),
+          renderDetailRow('cake', 'Edad', data.edad),
+          renderDetailRow('fingerprint', 'DNI', data.dni),
+          renderDetailRow('phone', 'Teléfono', data.telefono),
+          renderDetailRow('location-on', 'Dirección', data.direccion)
+        ),
+        React.createElement(View, { testID: 'View-46', style: { backgroundColor: theme.colors.card, borderRadius: 12, padding: 16, marginBottom: 14 }, componentId: 'detail-vehicles' },
+          React.createElement(View, { testID: 'View-47', style: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: theme.colors.border } },
+            React.createElement(View, { testID: 'View-48', style: { backgroundColor: theme.colors.primary, borderRadius: 8, padding: 6, marginRight: 10 } },
+              React.createElement(MaterialIcons, { testID: 'MaterialIcons-26', name: 'directions-car', size: 18, color: '#FFFFFF' })
+            ),
+            React.createElement(Text, { testID: 'Text-41', style: { color: textPrimary, fontSize: 16, fontWeight: '700' } }, 'VEHÍCULOS (' + String(data.vehiculos_count || vehicles.length) + ')')
+          ),
+          vehicles.length === 0
+            ? React.createElement(Text, { testID: 'Text-42', style: { color: theme.colors.textSecondary, textAlign: 'center', padding: 8 } }, 'Sin datos de vehículos')
+            : vehicles.map(function(v, i) {
+                return React.createElement(View, { testID: 'View-49', key: 'vd' + i,
+                  style: {
+                    backgroundColor: theme.colors.cardAlt,
+                    borderRadius: 10,
+                    padding: 12,
+                    marginBottom: 10,
+                    borderLeftWidth: 3,
+                    borderLeftColor: theme.colors.primary
+                  }
+                },
+                  React.createElement(Text, { testID: 'Text-43', style: { color: theme.colors.primary, fontSize: 13, fontWeight: '700', marginBottom: 8 } }, 'VEHÍCULO ' + (i + 1)),
+                  v.vehiculo ? React.createElement(View, { testID: 'View-50', style: { flexDirection: 'row', marginBottom: 5 } },
+                    React.createElement(Text, { testID: 'Text-44', style: { color: theme.colors.textSecondary, fontSize: 13, width: 80 } }, 'Marca:'),
+                    React.createElement(Text, { testID: 'Text-45', style: { color: textPrimary, fontSize: 13, flex: 1, fontWeight: '500' } }, v.vehiculo)
+                  ) : null,
+                  v.modelo ? React.createElement(View, { testID: 'View-51', style: { flexDirection: 'row', marginBottom: 5 } },
+                    React.createElement(Text, { testID: 'Text-46', style: { color: theme.colors.textSecondary, fontSize: 13, width: 80 } }, 'Modelo:'),
+                    React.createElement(Text, { testID: 'Text-47', style: { color: textPrimary, fontSize: 13, flex: 1, fontWeight: '500' } }, v.modelo)
+                  ) : null,
+                  v.dominio ? React.createElement(View, { testID: 'View-52', style: { flexDirection: 'row', marginBottom: 5 } },
+                    React.createElement(Text, { testID: 'Text-48', style: { color: theme.colors.textSecondary, fontSize: 13, width: 80 } }, 'Dominio:'),
+                    React.createElement(Text, { testID: 'Text-49', style: { color: textPrimary, fontSize: 13, flex: 1, fontWeight: '600', letterSpacing: 1 } }, v.dominio)
+                  ) : null,
+                  v.seguro ? React.createElement(View, { testID: 'View-53', style: { flexDirection: 'row' } },
+                    React.createElement(Text, { testID: 'Text-50', style: { color: theme.colors.textSecondary, fontSize: 13, width: 80 } }, 'Seguro:'),
+                    React.createElement(Text, { testID: 'Text-51', style: { color: textPrimary, fontSize: 13, flex: 1 } }, v.seguro)
+                  ) : null
+                );
+              })
+        ),
+        React.createElement(View, { testID: 'View-54', style: { backgroundColor: theme.colors.card, borderRadius: 12, padding: 16, marginBottom: 14 }, componentId: 'detail-responders' },
+          React.createElement(View, { testID: 'View-55', style: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: theme.colors.border } },
+            React.createElement(View, { testID: 'View-56', style: { backgroundColor: theme.colors.primary, borderRadius: 8, padding: 6, marginRight: 10 } },
+              React.createElement(MaterialIcons, { testID: 'MaterialIcons-27', name: 'local-fire-department', size: 18, color: '#FFFFFF' })
+            ),
+            React.createElement(Text, { testID: 'Text-52', style: { color: textPrimary, fontSize: 16, fontWeight: '700' } }, 'INTERVINIENTES')
+          ),
+          renderDetailRow('local-police', 'Policía', data.policia),
+          renderDetailRow('local-taxi', 'Móvil', data.movil),
+          renderDetailRow('emergency', 'Ambulancia', data.ambulancia),
+          renderDetailRow('security', 'Guardia', data.guardia)
+        ),
+        (data.observaciones && data.observaciones !== '-') ? React.createElement(View, { testID: 'View-57', style: { backgroundColor: theme.colors.card, borderRadius: 12, padding: 16, marginBottom: 14 }, componentId: 'detail-obs' },
+          React.createElement(View, { testID: 'View-58', style: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: theme.colors.border } },
+            React.createElement(View, { testID: 'View-59', style: { backgroundColor: theme.colors.cardAlt, borderRadius: 8, padding: 6, marginRight: 10 } },
+              React.createElement(MaterialIcons, { testID: 'MaterialIcons-28', name: 'notes', size: 18, color: theme.colors.textSecondary })
+            ),
+            React.createElement(Text, { testID: 'Text-53', style: { color: textPrimary, fontSize: 16, fontWeight: '700' } }, 'OBSERVACIONES')
+          ),
+          React.createElement(Text, { testID: 'Text-54', style: { color: textPrimary, fontSize: 15, lineHeight: 22 } }, data.observaciones)
+        ) : null,
+        (data.latitude && data.latitude !== '') ? React.createElement(View, { testID: 'View-60', style: { backgroundColor: theme.colors.card, borderRadius: 12, padding: 16, marginBottom: 14 }, componentId: 'detail-gps' },
+          React.createElement(View, { testID: 'View-61', style: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 } },
+            React.createElement(MaterialIcons, { testID: 'MaterialIcons-29', name: 'gps-fixed', size: 18, color: successColor }),
+            React.createElement(Text, { testID: 'Text-55', style: { color: textPrimary, fontSize: 16, fontWeight: '700', marginLeft: 8 } }, 'COORDENADAS GPS')
+          ),
+          React.createElement(Text, { testID: 'Text-56', style: { color: textPrimary, fontSize: 14, fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' } }, 'Lat: ' + data.latitude + '\nLng: ' + data.longitude)
+        ) : null
+      )
+    );
+  };
+  // @end:AccidentDetailScreen
+
+  // @section:TabNavigator @depends:[HomeScreen,HistoryScreen,navigation-setup]
+  var TabNavigator = function() {
+    var insets = useSafeAreaInsets();
+    var tc = useTheme();
+    var theme = tc.theme;
+
+    return React.createElement(View, { testID: 'View-62', style: { flex: 1, width: '100%', height: '100%', overflow: 'hidden' } },
+      React.createElement(Tab.Navigator, { testID: 'Navigator-1', screenOptions: {
+          headerShown: false,
+          tabBarStyle: {
+            position: 'absolute',
+            bottom: 0,
+            height: Platform.OS === 'web' ? TAB_MENU_HEIGHT : TAB_MENU_HEIGHT + insets.bottom,
+            borderTopWidth: 0,
+            backgroundColor: theme.colors.card,
+            borderTopColor: theme.colors.border,
+            elevation: 16,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.3,
+            shadowRadius: 6
+          },
+          tabBarItemStyle: { padding: 0 },
+          tabBarActiveTintColor: theme.colors.primary,
+          tabBarInactiveTintColor: theme.colors.textSecondary
+        }
+      },
+        React.createElement(Tab.Screen, { testID: 'Screen-1', name: 'HomeTab',
+          component: HomeScreen,
+          options: {
+            title: 'Inicio',
+            tabBarIcon: function(p) { return React.createElement(MaterialIcons, { testID: 'MaterialIcons-30', name: 'home', size: 26, color: p.color }); }
+          }
+        }),
+        React.createElement(Tab.Screen, { testID: 'Screen-2', name: 'HistoryTab',
+          component: HistoryScreen,
+          options: {
+            title: 'Historial',
+            tabBarIcon: function(p) { return React.createElement(MaterialIcons, { testID: 'MaterialIcons-31', name: 'history', size: 26, color: p.color }); }
+          }
+        })
+      )
+    );
+  };
+  // @end:TabNavigator
+
+  // @section:MainNavigator @depends:[TabNavigator,NewAccidentScreen,AccidentDetailScreen,navigation-setup]
+  var MainNavigator = function() {
+    return React.createElement(Stack.Navigator, { testID: 'Navigator-2', screenOptions: { headerShown: false }, initialRouteName: 'MainApp' },
+      React.createElement(Stack.Screen, { testID: 'Screen-3', name: 'MainApp', component: TabNavigator }),
+      React.createElement(Stack.Screen, { testID: 'Screen-4', name: 'NewAccident', component: NewAccidentScreen }),
+      React.createElement(Stack.Screen, { testID: 'Screen-5', name: 'AccidentDetail', component: AccidentDetailScreen, initialParams: { accident: null } })
+    );
+  };
+  // @end:MainNavigator
+
+  // @section:styles @depends:[theme]
+  var styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: backgroundColor
+    },
+    card: {
+      backgroundColor: cardColor,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 14
+    },
+    sectionTitle: {
+      color: textPrimary,
+      fontSize: 16,
+      fontWeight: '700',
+      marginLeft: 8
+    },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: cardAlt,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: borderColor,
+      paddingHorizontal: 12
+    },
+    input: {
+      flex: 1,
+      color: textPrimary,
+      fontSize: 15,
+      paddingVertical: 12,
+      paddingLeft: 8
+    },
+    label: {
+      color: textSecondary,
+      fontSize: 12,
+      marginBottom: 4,
+      fontWeight: '600',
+      letterSpacing: 0.5
+    }
+  });
+  // @end:styles
+
+  // @section:return @depends:[ThemeProvider,MainNavigator]
+  return React.createElement(ThemeProvider, { testID: 'ThemeProvider-1' },
+    React.createElement(View, { testID: 'View-63', style: { flex: 1, width: '100%', height: '100%' } },
+      React.createElement(StatusBar, { testID: 'StatusBar-1', barStyle: 'light-content', backgroundColor: primaryColor }),
+      React.createElement(MainNavigator)
+    )
+  );
+  // @end:return
+};
+return ComponentFunction;
